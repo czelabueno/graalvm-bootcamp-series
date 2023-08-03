@@ -1,0 +1,47 @@
+name: Generate spring-aot executable multi-OS
+on:
+  workflow_dispatch:
+
+env:
+  JDK_VERSION: '17'
+  GRAALVM_DISTRIBUTION: 'graalvm' # new Oracle GraalVM distribution See 'Options' for all available distributions
+
+jobs:
+  build:
+    name: Spring AOT on ${{ matrix.os }}
+    runs-on: ${{ matrix.os }}
+    strategy:
+      matrix:
+        os: [ macos-latest, windows-latest, ubuntu-latest ]
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+
+      - name: GraalVM Setup
+        uses: graalvm/setup-graalvm@v1
+        with:
+          distribution: ${{env.GRAALVM_DISTRIBUTION}}
+          java-version: ${{env.JDK_VERSION}}
+          components: 'native-image'
+
+      - name: Validate GraalVM version and pre-requisites installation
+        run: |
+          echo "GRAALVM_HOME: $GRAALVM_HOME"
+          echo "JAVA_HOME: $JAVA_HOME"
+          java --version
+          native-image --version
+          echo "gcc version:"; gcc --version
+
+      - name: Generate native image executable
+        run: |
+          cd ./Serie2-DevelopingCloudJavaApp/spring-aot
+          chmod +x build.sh
+          ./build
+
+      - name: Upload binary
+        uses: actions/upload-artifact@v2
+        with:
+          name: spring-aot-ni-${{ matrix.os }}
+          path: ./Serie2-DevelopingCloudJavaApp/spring-aot/target/spring-aot-ni*
+          
+          
