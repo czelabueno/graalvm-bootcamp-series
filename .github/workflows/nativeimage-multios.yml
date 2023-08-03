@@ -32,11 +32,11 @@ jobs:
           native-image --version
           echo "gcc version:"; gcc --version
 
-      - name: Generate native image executable
+      - name: Generate native image executable Linux
         run: |
           cd ./Serie2-DevelopingCloudJavaApp/spring-aot
-          chmod +x build.sh
-          ./build.sh
+          chmod +x mvnw mvnw.cmd
+          ./mvnw clean -Pnative native:compile
 
       - name: Upload binary
         uses: actions/upload-artifact@v2
