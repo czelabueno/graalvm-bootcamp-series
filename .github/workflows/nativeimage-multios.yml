@@ -36,7 +36,7 @@ jobs:
         run: |
           cd ./Serie2-DevelopingCloudJavaApp/spring-aot
           chmod +x build.sh
-          ./build
+          ./build.sh
 
       - name: Upload binary
         uses: actions/upload-artifact@v2
