@@ -54,6 +54,7 @@ jobs:
         uses: actions/checkout@v3
 
       - name: Download binary
+        id: download
         uses: actions/download-artifact@v3
         with:
           name: spring-aot-ni-ubuntu-latest
@@ -62,6 +63,7 @@ jobs:
       - name: Checking dynamic linking
         run: |
           echo $GITHUB_WORKSPACE
-          ldd $GITHUB_WORKSPACE/Serie2-DevelopingCloudJavaApp/spring-aot/spring-aot-ni-ubuntu-latest
+          echo ${{steps.download.outputs.download-path}}
+          ls -R ${{steps.download.outputs.download-path}}
 
           
