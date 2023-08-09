@@ -62,8 +62,7 @@ jobs:
 
       - name: Checking dynamic linking
         run: |
-          echo $GITHUB_WORKSPACE
           echo ${{steps.download.outputs.download-path}}
-          ls -R ${{steps.download.outputs.download-path}}
+          ldd ${{steps.download.outputs.download-path}}/spring-aot-ni
 
           
