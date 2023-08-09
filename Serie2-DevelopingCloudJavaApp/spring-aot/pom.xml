@@ -40,6 +40,8 @@
 						<!--buildArg>-Ob</buildArg-->
 						<!--buildArg>-static</buildArg-->
 						<!--buildArg>-libc=musl</buildArg-->
+						<buildArg>-H:+StaticExecutableWithDynamicLibC</buildArg>
+						<buildArg>-H:+ReportExceptionStackTraces</buildArg>
 					</buildArgs>
 				</configuration>
 			</plugin>
