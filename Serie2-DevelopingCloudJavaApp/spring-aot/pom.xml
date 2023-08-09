@@ -37,7 +37,9 @@
 				<configuration>
 					<imageName>${artifactId}-ni</imageName>
 					<buildArgs>
-						<buildArg>-Ob</buildArg>
+						<!--buildArg>-Ob</buildArg-->
+						<buildArg>--static</buildArg>
+						<buildArg>--libc=musl</buildArg>
 					</buildArgs>
 				</configuration>
 			</plugin>

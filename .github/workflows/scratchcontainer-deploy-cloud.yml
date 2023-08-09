@@ -1,18 +1,19 @@
-name: Generate spring-aot executable multi-OS
+name: Build scratch container and deploy into Cloud
 on:
   workflow_dispatch:
 
 env:
   JDK_VERSION: '17'
-  GRAALVM_DISTRIBUTION: 'graalvm' # new Oracle GraalVM distribution See 'Options' for all available distributions
+  GRAALVM_DISTRIBUTION: 'graalvm'
+  AWS_REGION: 'us-east-2'
+
+permissions:
+  id-token: write   # This is required for requesting the JWT
+  contents: read    # This is required for actions/checkout
 
 jobs:
   build:
-    name: Spring AOT on ${{ matrix.os }}
-    runs-on: ${{ matrix.os }}
-    strategy:
-      matrix:
-        os: [ macos-latest, windows-latest, ubuntu-latest ]
+    runs-on: ubuntu-latest
     steps:
       - name: Checkout code
         uses: actions/checkout@v3
@@ -22,6 +23,7 @@ jobs:
         with:
           distribution: ${{env.GRAALVM_DISTRIBUTION}}
           java-version: ${{env.JDK_VERSION}}
+          native-image-musl: 'true'
           components: 'native-image'
           native-image-job-reports: 'true'
 
@@ -42,7 +44,7 @@ jobs:
       - name: Upload binary
         uses: actions/upload-artifact@v2
         with:
-          name: spring-aot-ni-${{ matrix.os }}
+          name: spring-aot-ni
           path: ./Serie2-DevelopingCloudJavaApp/spring-aot/target/spring-aot-ni*
 
   delivery:
@@ -64,6 +66,33 @@ jobs:
         run: |
           echo ${{steps.download.outputs.download-path}}
           ldd ${{steps.download.outputs.download-path}}/spring-aot-ni
-          
 
-          
+      - name: Configure aws credentials
+        uses: aws-actions/configure-aws-credentials@v2
+        with:
+          role-to-assume: ${{ secrets.ACR_USERNAME }}
+          aws-region: ${{ env.AWS_REGION }}
+
+      # Configuring Buildx to build multi-architecture images (arm64,amd64,x86-64,etc)
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v2
+
+      - name: Login to Amazon ECR
+        id: login-ecr
+        uses: aws-actions/amazon-ecr-login@v1
+        with:
+          mask-password: 'true'
+
+      - name: Build, tag, and push docker image to Amazon ECR
+        uses: docker/build-push-action@v4
+        env:
+          REGISTRY: ${{ steps.login-ecr.outputs.registry }}
+          REPOSITORY: spring-aot-app
+          IMAGE_TAG: 'scratch'
+        with:
+          context: .
+          push: true
+          tags: $REGISTRY/$REPOSITORY:$IMAGE_TAG
+          file: Dockerfile.scratch
+          build-args: APP_FILE=spring-aot-ni
+
