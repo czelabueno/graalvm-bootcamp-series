@@ -66,11 +66,6 @@ jobs:
           name: spring-aot-ni
           path: ./Serie2-DevelopingCloudJavaApp/spring-aot
 
-      - name: Checking dynamic linking
-        run: |
-          echo ${{steps.download.outputs.download-path}}
-          ldd ${{steps.download.outputs.download-path}}/spring-aot-ni
-
       - name: Configure aws credentials
         if: ${{ matrix.cloud }} == 'AWS'}}
         uses: aws-actions/configure-aws-credentials@v2
@@ -108,8 +103,8 @@ jobs:
           context: .
           push: true
           tags: $REGISTRY/$REPOSITORY:$IMAGE_TAG
-          file: Dockerfile.scratch
-          build-args: APP_FILE=spring-aot-ni
+          file: ${{steps.download.outputs.download-path}}/Dockerfile.scratch
+          build-args: APP_FILE=${{steps.download.outputs.download-path}}/spring-aot-ni
 
       - name: Build, tag, and push docker image to Azure CR
         if: ${{ matrix.cloud }} == 'Azure'}}
@@ -121,7 +116,7 @@ jobs:
           context: .
           push: true
           tags: ${{ vars.ACR_NAME }}.azurecr.io/$REPOSITORY:$IMAGE_TAG
-          file: Dockerfile.scratch
-          build-args: APP_FILE=spring-aot-ni
+          file: ${{steps.download.outputs.download-path}}/Dockerfile.scratch
+          build-args: APP_FILE=${{steps.download.outputs.download-path}}/spring-aot-ni
 
 
