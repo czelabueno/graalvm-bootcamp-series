@@ -61,8 +61,7 @@ jobs:
 
       - name: Checking dynamic linking
         run: |
-          echo {{ github.workspace }}
           echo $GITHUB_WORKSPACE
-          ldd {{ github.workspace }}/Serie2-DevelopingCloudJavaApp/spring-aot/spring-aot-ni-ubuntu-latest
+          ldd $GITHUB_WORKSPACE/Serie2-DevelopingCloudJavaApp/spring-aot/spring-aot-ni-ubuntu-latest
 
           
