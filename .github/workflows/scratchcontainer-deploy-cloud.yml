@@ -6,6 +6,7 @@ env:
   JDK_VERSION: '17'
   GRAALVM_DISTRIBUTION: 'graalvm'
   AWS_REGION: 'us-east-2'
+  AZURE_REGION: 'east us'
   CONTAINER_REPOSITORY: spring-aot-app
   IMAGE_TAG: 'scratch'
 
@@ -50,13 +51,10 @@ jobs:
           name: spring-aot-ni
           path: ./Serie2-DevelopingCloudJavaApp/spring-aot/target/spring-aot-ni*
 
-  delivery:
-    name: ${{ matrix.cloud }} - Pushing as container into Container registry
+  delivery-aws:
+    name: AWS - Pushing as container into Container registry
     runs-on: ubuntu-latest
     needs: build
-    strategy:
-      matrix:
-        cloud: [ AWS, Azure ]
     steps:
       - name: Checkout code
         uses: actions/checkout@v3
@@ -69,7 +67,6 @@ jobs:
           path: ./Serie2-DevelopingCloudJavaApp/spring-aot
 
       - name: Configure aws credentials
-        if: ${{ matrix.cloud }} == 'AWS'
         uses: aws-actions/configure-aws-credentials@v2
         with:
           role-to-assume: ${{ secrets.AWS_ARN }}
@@ -80,33 +77,47 @@ jobs:
         uses: docker/setup-buildx-action@v2
 
       - name: Login to AWS ECR
-        if: ${{ matrix.cloud }} == 'AWS'
         id: login-ecr
         uses: aws-actions/amazon-ecr-login@v1
         with:
           mask-password: 'true'
 
+      - name: Build, tag, and push docker image to Amazon ECR
+        uses: docker/build-push-action@v4
+        env:
+          REGISTRY: ${{ steps.login-ecr.outputs.registry }}
+        with:
+          context: .
+          push: true
+          tags: ${{ env.REGISTRY }}/${{ env.CONTAINER_REPOSITORY }}:${{ env.IMAGE_TAG }}
+          file: ${{steps.download.outputs.download-path}}/Dockerfile.scratch
+          build-args: APP_FILE=${{steps.download.outputs.download-path}}/spring-aot-ni
+
+  delivery-azure:
+    name: Azure - Pushing as container into Container registry
+    runs-on: ubuntu-latest
+    needs: build
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+
+      - name: Download binary
+        id: download
+        uses: actions/download-artifact@v3
+        with:
+          name: spring-aot-ni
+          path: ./Serie2-DevelopingCloudJavaApp/spring-aot
+
+      # Configuring Buildx to build multi-architecture images (arm64,amd64,x86-64,etc)
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v2
+
       - name: Log in to Azure container registry
-        if: ${{ matrix.cloud }} == 'Azure'
         uses: docker/login-action@v2
         with:
           registry: ${{ vars.ACR_NAME }}.azurecr.io
           username: ${{ secrets.ACR_USERNAME }}
           password: ${{ secrets.ACR_PASSWORD }}
-
-      - name: Build, tag, and push docker image to Amazon ECR
-        if: ${{ matrix.cloud }} == 'AWS'
-        uses: docker/build-push-action@v4
-        env:
-          REGISTRY: ${{ steps.login-ecr.outputs.registry }}
-          REPOSITORY: spring-aot-app
-          IMAGE_TAG: 'scratch'
-        with:
-          context: .
-          push: true
-          tags: $REGISTRY/${{ env.CONTAINER_REPOSITORY }}:${{ env.IMAGE_TAG }}
-          file: ${{steps.download.outputs.download-path}}/Dockerfile.scratch
-          build-args: APP_FILE=${{steps.download.outputs.download-path}}/spring-aot-ni
 
       - name: Build, tag, and push docker image to Azure CR
         if: ${{ matrix.cloud }} == 'Azure'
@@ -118,22 +129,41 @@ jobs:
           file: ${{steps.download.outputs.download-path}}/Dockerfile.scratch
           build-args: APP_FILE=${{steps.download.outputs.download-path}}/spring-aot-ni
 
-  deploy:
-    name: ${{ matrix.cloud }} - Deploy into container services
+  deploy-aws:
+    name: AWS - Deploy into container services
     runs-on: ubuntu-latest
-    needs: delivery
-    strategy:
-      matrix:
-        cloud: [ AWS, Azure ]
+    needs: delivery-aws
+    steps:
+      - name: Login AWS via OIDC
+        uses: aws-actions/configure-aws-credentials@v2
+        with:
+          role-to-assume: ${{ secrets.AWS_ARN }}
+          aws-region: ${{ env.AWS_REGION }}
+
+      - name: Deploy to AWS Lambda Function
+        run: |
+          aws lambda create-function \
+            --function-name spring-aot-lambda \
+            --package-type Image \
+            --code ImageUri=${{ env.AWS_ACCOUNT_ID}}.dkr.ecr.${{ env.AWS_REGION }}.amazonaws.com/${{ env.CONTAINER_REPOSITORY }}:${{ env.IMAGE_TAG }} \
+            --handler spring-aot-lambda.handler \
+            --role ${{ secrets.AWS_ARN }}
+          
+
+  deploy-azure:
+    name: Azure - Deploy into container services
+    runs-on: ubuntu-latest
+    needs: delivery-azure
+    environment:
+      name: 'Development'
+      url: ${{ steps.spring-aot-containerapp.outputs.appUrl }}
     steps:
       - name: Login via Azure CLI
-        if: ${{ matrix.cloud }} == 'Azure'
         uses: azure/login@v1
         with:
           creds: ${{ secrets.AZURE_CREDENTIALS }}
 
-      - name: Build and deploy Container App
-        if: ${{ matrix.cloud }} == 'Azure'
+      - name: Deploy to Azure Container App
         id: spring-aot-containerapp
         uses: czelabueno/container-apps-deploy-action@v0.9
         with:
@@ -144,6 +174,7 @@ jobs:
           acrUsername: ${{ secrets.ACR_USERNAME }}
           acrPassword: ${{ secrets.ACR_PASSWORD }}
           targetPort: 8080
-          location: 'east us'
+          location: ${{ env.AZURE_REGION}}
           containerAppEnvironment: managedEnvironment-czela
+
 
