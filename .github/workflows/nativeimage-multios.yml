@@ -60,6 +60,9 @@ jobs:
           path: ./Serie2-DevelopingCloudJavaApp/spring-aot
 
       - name: Checking dynamic linking
-        run: ldd ./Serie2-DevelopingCloudJavaApp/spring-aot/spring-aot-ni-ubuntu-latest
+        run: |
+          echo {{ github.workspace }}
+          echo $GITHUB_WORKSPACE
+          ldd {{ github.workspace }}/Serie2-DevelopingCloudJavaApp/spring-aot/spring-aot-ni-ubuntu-latest
 
           
