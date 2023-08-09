@@ -6,6 +6,8 @@ env:
   JDK_VERSION: '17'
   GRAALVM_DISTRIBUTION: 'graalvm'
   AWS_REGION: 'us-east-2'
+  CONTAINER_REPOSITORY: spring-aot-app
+  IMAGE_TAG: 'scratch'
 
 permissions:
   id-token: write   # This is required for requesting the JWT
@@ -67,7 +69,7 @@ jobs:
           path: ./Serie2-DevelopingCloudJavaApp/spring-aot
 
       - name: Configure aws credentials
-        if: ${{ matrix.cloud }} == 'AWS'}}
+        if: ${{ matrix.cloud }} == 'AWS'
         uses: aws-actions/configure-aws-credentials@v2
         with:
           role-to-assume: ${{ secrets.AWS_ARN }}
@@ -78,14 +80,14 @@ jobs:
         uses: docker/setup-buildx-action@v2
 
       - name: Login to AWS ECR
-        if: ${{ matrix.cloud }} == 'AWS'}}
+        if: ${{ matrix.cloud }} == 'AWS'
         id: login-ecr
         uses: aws-actions/amazon-ecr-login@v1
         with:
           mask-password: 'true'
 
       - name: Log in to Azure container registry
-        if: ${{ matrix.cloud }} == 'Azure'}}
+        if: ${{ matrix.cloud }} == 'Azure'
         uses: docker/login-action@v2
         with:
           registry: ${{ vars.ACR_NAME }}.azurecr.io
@@ -93,7 +95,7 @@ jobs:
           password: ${{ secrets.ACR_PASSWORD }}
 
       - name: Build, tag, and push docker image to Amazon ECR
-        if: ${{ matrix.cloud }} == 'AWS'}}
+        if: ${{ matrix.cloud }} == 'AWS'
         uses: docker/build-push-action@v4
         env:
           REGISTRY: ${{ steps.login-ecr.outputs.registry }}
@@ -102,21 +104,46 @@ jobs:
         with:
           context: .
           push: true
-          tags: $REGISTRY/$REPOSITORY:$IMAGE_TAG
+          tags: $REGISTRY/${{ env.CONTAINER_REPOSITORY }}:${{ env.IMAGE_TAG }}
           file: ${{steps.download.outputs.download-path}}/Dockerfile.scratch
           build-args: APP_FILE=${{steps.download.outputs.download-path}}/spring-aot-ni
 
       - name: Build, tag, and push docker image to Azure CR
-        if: ${{ matrix.cloud }} == 'Azure'}}
+        if: ${{ matrix.cloud }} == 'Azure'
         uses: docker/build-push-action@v4
-        env:
-          REPOSITORY: spring-aot-app
-          IMAGE_TAG: 'scratch'
         with:
           context: .
           push: true
-          tags: ${{ vars.ACR_NAME }}.azurecr.io/$REPOSITORY:$IMAGE_TAG
+          tags: ${{ vars.ACR_NAME }}.azurecr.io/${{ env.CONTAINER_REPOSITORY }}:${{ env.IMAGE_TAG }}
           file: ${{steps.download.outputs.download-path}}/Dockerfile.scratch
           build-args: APP_FILE=${{steps.download.outputs.download-path}}/spring-aot-ni
 
+  deploy:
+    name: ${{ matrix.cloud }} - Deploy into container services
+    runs-on: ubuntu-latest
+    needs: delivery
+    strategy:
+      matrix:
+        cloud: [ AWS, Azure ]
+    steps:
+      - name: Login via Azure CLI
+        if: ${{ matrix.cloud }} == 'Azure'
+        uses: azure/login@v1
+        with:
+          creds: ${{ secrets.AZURE_CREDENTIALS }}
+
+      - name: Build and deploy Container App
+        if: ${{ matrix.cloud }} == 'Azure'
+        id: spring-aot-containerapp
+        uses: czelabueno/container-apps-deploy-action@v0.9
+        with:
+          containerAppName: spring-aot-containerapp
+          resourceGroup: rg-demo-czela
+          imageToDeploy: ${{ vars.ACR_NAME }}.azurecr.io/${{ env.CONTAINER_REPOSITORY }}:${{ env.IMAGE_TAG }}
+          acrName: ${{ vars.ACR_NAME }}
+          acrUsername: ${{ secrets.ACR_USERNAME }}
+          acrPassword: ${{ secrets.ACR_PASSWORD }}
+          targetPort: 8080
+          location: 'east us'
+          containerAppEnvironment: managedEnvironment-czela
 
