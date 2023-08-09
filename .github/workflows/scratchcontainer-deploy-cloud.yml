@@ -13,6 +13,7 @@ permissions:
 
 jobs:
   build:
+    name: Build fully static native image executable
     runs-on: ubuntu-latest
     steps:
       - name: Checkout code
@@ -48,9 +49,12 @@ jobs:
           path: ./Serie2-DevelopingCloudJavaApp/spring-aot/target/spring-aot-ni*
 
   delivery:
-    name: Native image inside Docker container
+    name: ${{ matrix.cloud }} - Pushing as container into Container registry
     runs-on: ubuntu-latest
     needs: build
+    strategy:
+      matrix:
+        cloud: [ AWS, Azure ]
     steps:
       - name: Checkout code
         uses: actions/checkout@v3
@@ -59,7 +63,7 @@ jobs:
         id: download
         uses: actions/download-artifact@v3
         with:
-          name: spring-aot-ni-ubuntu-latest
+          name: spring-aot-ni
           path: ./Serie2-DevelopingCloudJavaApp/spring-aot
 
       - name: Checking dynamic linking
@@ -68,22 +72,33 @@ jobs:
           ldd ${{steps.download.outputs.download-path}}/spring-aot-ni
 
       - name: Configure aws credentials
+        if: ${{ matrix.cloud }} == 'AWS'}}
         uses: aws-actions/configure-aws-credentials@v2
         with:
-          role-to-assume: ${{ secrets.ACR_USERNAME }}
+          role-to-assume: ${{ secrets.AWS_ARN }}
           aws-region: ${{ env.AWS_REGION }}
 
       # Configuring Buildx to build multi-architecture images (arm64,amd64,x86-64,etc)
       - name: Set up Docker Buildx
         uses: docker/setup-buildx-action@v2
 
-      - name: Login to Amazon ECR
+      - name: Login to AWS ECR
+        if: ${{ matrix.cloud }} == 'AWS'}}
         id: login-ecr
         uses: aws-actions/amazon-ecr-login@v1
         with:
           mask-password: 'true'
 
+      - name: Log in to Azure container registry
+        if: ${{ matrix.cloud }} == 'Azure'}}
+        uses: docker/login-action@v2
+        with:
+          registry: ${{ vars.ACR_NAME }}.azurecr.io
+          username: ${{ secrets.ACR_USERNAME }}
+          password: ${{ secrets.ACR_PASSWORD }}
+
       - name: Build, tag, and push docker image to Amazon ECR
+        if: ${{ matrix.cloud }} == 'AWS'}}
         uses: docker/build-push-action@v4
         env:
           REGISTRY: ${{ steps.login-ecr.outputs.registry }}
@@ -95,4 +110,18 @@ jobs:
           tags: $REGISTRY/$REPOSITORY:$IMAGE_TAG
           file: Dockerfile.scratch
           build-args: APP_FILE=spring-aot-ni
+
+      - name: Build, tag, and push docker image to Azure CR
+        if: ${{ matrix.cloud }} == 'Azure'}}
+        uses: docker/build-push-action@v4
+        env:
+          REPOSITORY: spring-aot-app
+          IMAGE_TAG: 'scratch'
+        with:
+          context: .
+          push: true
+          tags: ${{ vars.ACR_NAME }}.azurecr.io/$REPOSITORY:$IMAGE_TAG
+          file: Dockerfile.scratch
+          build-args: APP_FILE=spring-aot-ni
+
 
