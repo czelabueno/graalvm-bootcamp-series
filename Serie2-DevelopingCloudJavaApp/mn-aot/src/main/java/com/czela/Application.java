@@ -1,10 +1,5 @@
 package com.czela;
 
-import io.micronaut.context.ApplicationContext;
-import io.micronaut.context.annotation.Requires;
-import io.micronaut.context.env.Environment;
-import io.micronaut.http.annotation.Controller;
-import io.micronaut.http.annotation.Get;
 import io.micronaut.runtime.Micronaut;
 import java.util.Arrays;
 import java.util.List;
@@ -33,7 +28,7 @@ class CommunityHttpController {
         return this.community;
     }
 
-    @Get("cloud-platform")
+    @Get("/cloud-platform")
     @Requires (env = Environment.CLOUD)
     public Set<String> getHostCloud(){
         ApplicationContext ctx = ApplicationContext.builder().deduceCloudEnvironment(true).start();
