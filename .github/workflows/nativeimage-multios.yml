@@ -43,5 +43,21 @@ jobs:
         with:
           name: spring-aot-ni-${{ matrix.os }}
           path: ./Serie2-DevelopingCloudJavaApp/spring-aot/target/spring-aot-ni*
-          
+
+  delivery:
+    name: Native image inside Docker container
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+
+      - name: Download binary
+        uses: actions/download-artifact@v3
+        with:
+          name: spring-aot-ni-ubuntu-latest
+          path: ./Serie2-DevelopingCloudJavaApp/spring-aot
+
+      - name: Checking dynamic linking
+        run: ldd ./Serie2-DevelopingCloudJavaApp/spring-aot/spring-aot-ni-ubuntu-latest
+
           
