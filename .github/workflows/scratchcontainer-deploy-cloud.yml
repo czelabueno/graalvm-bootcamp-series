@@ -90,8 +90,8 @@ jobs:
           context: .
           push: true
           tags: ${{ env.REGISTRY }}/${{ env.CONTAINER_REPOSITORY }}:${{ env.IMAGE_TAG }}
-          file: ${{steps.download.outputs.download-path}}/Dockerfile.scratch
-          build-args: APP_FILE=${{steps.download.outputs.download-path}}/spring-aot-ni
+          file: Serie2-DevelopingCloudJavaApp/spring-aot/Dockerfile.scratch
+          build-args: APP_FILE=spring-aot-ni
 
   delivery-azure:
     name: Azure - Pushing as container into Container registry
@@ -126,8 +126,8 @@ jobs:
           context: .
           push: true
           tags: ${{ vars.ACR_NAME }}.azurecr.io/${{ env.CONTAINER_REPOSITORY }}:${{ env.IMAGE_TAG }}
-          file: ${{steps.download.outputs.download-path}}/Dockerfile.scratch
-          build-args: APP_FILE=${{steps.download.outputs.download-path}}/spring-aot-ni
+          file: /Serie2-DevelopingCloudJavaApp/spring-aot/Dockerfile.scratch
+          build-args: spring-aot-ni
 
   deploy-aws:
     name: AWS - Deploy into container services
