@@ -67,7 +67,9 @@ jobs:
           path: ./Serie2-DevelopingCloudJavaApp/spring-aot
 
       - name: Checking binary executable
-        run: ls -lh ${{steps.download.outputs.download-path}}
+        run: |
+          chmod a+x ${{steps.download.outputs.download-path}}/spring-aot-ni
+          ls -lh ${{steps.download.outputs.download-path}}
 
       - name: Configure aws credentials
         uses: aws-actions/configure-aws-credentials@v2
@@ -112,7 +114,9 @@ jobs:
           path: ./Serie2-DevelopingCloudJavaApp/spring-aot
 
       - name: Checking binary executable
-        run: ls -lh ${{steps.download.outputs.download-path}}
+        run: |
+          chmod a+x ${{steps.download.outputs.download-path}}/spring-aot-ni
+          ls -lh ${{steps.download.outputs.download-path}}
 
       # Configuring Buildx to build multi-architecture images (arm64,amd64,x86-64,etc)
       - name: Set up Docker Buildx
@@ -152,9 +156,9 @@ jobs:
             --function-name spring-aot-lambda \
             --package-type Image \
             --code ImageUri=${{ env.AWS_ACCOUNT_ID}}.dkr.ecr.${{ env.AWS_REGION }}.amazonaws.com/${{ env.CONTAINER_REPOSITORY }}:${{ env.IMAGE_TAG }} \
-            --handler spring-aot-lambda.handler \
             --role ${{ secrets.AWS_ARN }}
           
+
 
   deploy-azure:
     name: Azure - Deploy into container services

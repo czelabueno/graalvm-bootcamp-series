@@ -1,5 +1,9 @@
 FROM scratch
+
+WORKDIR /app
+
 ARG APP_FILE
 EXPOSE 8080
-COPY ${APP_FILE}  /app
-ENTRYPOINT ["/app"]
+
+COPY ${APP_FILE}  spring-aot
+ENTRYPOINT ["/app/spring-aot"]
