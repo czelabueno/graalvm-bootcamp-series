@@ -1,0 +1,9 @@
+FROM public.ecr.aws/lambda/go:1
+
+WORKDIR /app
+
+ARG APP_FILE
+EXPOSE 8080
+
+COPY ${APP_FILE}  spring-aot
+ENTRYPOINT ["/app/spring-aot"]

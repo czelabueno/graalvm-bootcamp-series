@@ -1,4 +1,4 @@
-name: Build scratch container and deploy into Cloud
+name: Build tiny container and deploy into Cloud
 on:
   workflow_dispatch:
 
@@ -77,10 +77,6 @@ jobs:
           role-to-assume: ${{ secrets.AWS_ARN }}
           aws-region: ${{ env.AWS_REGION }}
 
-      # Configuring Buildx to build multi-architecture images (arm64,amd64,x86-64,etc)
-      - name: Set up Docker Buildx
-        uses: docker/setup-buildx-action@v2
-
       - name: Login to AWS ECR
         id: login-ecr
         uses: aws-actions/amazon-ecr-login@v1
@@ -95,7 +91,7 @@ jobs:
           context: .
           push: true
           tags: ${{ env.REGISTRY }}/${{ env.CONTAINER_REPOSITORY }}:${{ env.IMAGE_TAG }}
-          file: Serie2-DevelopingCloudJavaApp/spring-aot/Dockerfile.alpine
+          file: Serie2-DevelopingCloudJavaApp/spring-aot/Dockerfile.aws
           build-args: APP_FILE=Serie2-DevelopingCloudJavaApp/spring-aot/spring-aot-ni
 
   delivery-azure:
