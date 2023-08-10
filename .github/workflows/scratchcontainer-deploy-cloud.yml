@@ -155,7 +155,7 @@ jobs:
           aws lambda create-function \
             --function-name spring-aot-lambda \
             --package-type Image \
-            --code ImageUri=${{ env.AWS_ACCOUNT_ID}}.dkr.ecr.${{ env.AWS_REGION }}.amazonaws.com/${{ env.CONTAINER_REPOSITORY }}:${{ env.IMAGE_TAG }} \
+            --code ImageUri=${{ secrets.AWS_ACCOUNT_ID}}.dkr.ecr.${{ env.AWS_REGION }}.amazonaws.com/${{ env.CONTAINER_REPOSITORY }}:${{ env.IMAGE_TAG }} \
             --role ${{ secrets.AWS_ARN }}
           
 
