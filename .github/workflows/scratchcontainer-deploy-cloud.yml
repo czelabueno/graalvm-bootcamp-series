@@ -146,17 +146,17 @@ jobs:
           role-to-assume: ${{ secrets.AWS_ARN }}
           aws-region: ${{ env.AWS_REGION }}
 
-      - name: Deploy to AWS Lambda Function
+      - name: Download task definition
         run: |
-          aws lambda create-function \
-            --function-name spring-aot-lambda \
-            --package-type Image \
-            --code ImageUri=${{ secrets.AWS_ACCOUNT_ID}}.dkr.ecr.${{ env.AWS_REGION }}.amazonaws.com/${{ env.CONTAINER_REPOSITORY }}:${{ env.IMAGE_TAG }} \
-            --role ${{ secrets.AWS_ARN_LAMBDA }}
-          
+          aws ecs describe-task-definition --task-definition task-container-graalvm --query taskDefinition > task-definition.json      
 
-
-
+      - name: Deploy Amazon ECS task definition
+        uses: aws-actions/amazon-ecs-deploy-task-definition@v1
+        with:
+          task-definition: task-definition.json
+          service: graalvm-svc-demo
+          cluster: graalvm-ecs-demo
+          wait-for-service-stability: true
 
   deploy-azure:
     name: Azure - Deploy Containerapp
