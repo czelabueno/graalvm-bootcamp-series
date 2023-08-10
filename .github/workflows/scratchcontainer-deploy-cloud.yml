@@ -66,6 +66,9 @@ jobs:
           name: spring-aot-ni
           path: ./Serie2-DevelopingCloudJavaApp/spring-aot
 
+      - name: Checking binary executable
+        run: ls -lh ${{steps.download.outputs.download-path}}
+
       - name: Configure aws credentials
         uses: aws-actions/configure-aws-credentials@v2
         with:
@@ -91,7 +94,7 @@ jobs:
           push: true
           tags: ${{ env.REGISTRY }}/${{ env.CONTAINER_REPOSITORY }}:${{ env.IMAGE_TAG }}
           file: Serie2-DevelopingCloudJavaApp/spring-aot/Dockerfile.scratch
-          build-args: APP_FILE=spring-aot-ni
+          build-args: APP_FILE=Serie2-DevelopingCloudJavaApp/spring-aot/spring-aot-ni
 
   delivery-azure:
     name: Azure - Pushing as container into Container registry
@@ -107,6 +110,9 @@ jobs:
         with:
           name: spring-aot-ni
           path: ./Serie2-DevelopingCloudJavaApp/spring-aot
+
+      - name: Checking binary executable
+        run: ls -lh ${{steps.download.outputs.download-path}}
 
       # Configuring Buildx to build multi-architecture images (arm64,amd64,x86-64,etc)
       - name: Set up Docker Buildx
@@ -126,8 +132,8 @@ jobs:
           context: .
           push: true
           tags: ${{ vars.ACR_NAME }}.azurecr.io/${{ env.CONTAINER_REPOSITORY }}:${{ env.IMAGE_TAG }}
-          file: /Serie2-DevelopingCloudJavaApp/spring-aot/Dockerfile.scratch
-          build-args: spring-aot-ni
+          file: Serie2-DevelopingCloudJavaApp/spring-aot/Dockerfile.scratch
+          build-args: APP_FILE=Serie2-DevelopingCloudJavaApp/spring-aot/spring-aot-ni
 
   deploy-aws:
     name: AWS - Deploy into container services
