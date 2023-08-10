@@ -8,7 +8,7 @@ env:
   AWS_REGION: 'us-east-2'
   AZURE_REGION: 'east us'
   CONTAINER_REPOSITORY: spring-aot-app
-  IMAGE_TAG: 'scratch'
+  IMAGE_TAG: 'alpine'
 
 permissions:
   id-token: write   # This is required for requesting the JWT
@@ -52,7 +52,7 @@ jobs:
           path: ./Serie2-DevelopingCloudJavaApp/spring-aot/target/spring-aot-ni*
 
   delivery-aws:
-    name: AWS - Pushing as container into Container registry
+    name: AWS - Pushing into ECR
     runs-on: ubuntu-latest
     needs: build
     steps:
@@ -95,11 +95,11 @@ jobs:
           context: .
           push: true
           tags: ${{ env.REGISTRY }}/${{ env.CONTAINER_REPOSITORY }}:${{ env.IMAGE_TAG }}
-          file: Serie2-DevelopingCloudJavaApp/spring-aot/Dockerfile.scratch
+          file: Serie2-DevelopingCloudJavaApp/spring-aot/Dockerfile.alpine
           build-args: APP_FILE=Serie2-DevelopingCloudJavaApp/spring-aot/spring-aot-ni
 
   delivery-azure:
-    name: Azure - Pushing as container into Container registry
+    name: Azure - Pushing into ACR
     runs-on: ubuntu-latest
     needs: build
     steps:
@@ -136,11 +136,11 @@ jobs:
           context: .
           push: true
           tags: ${{ vars.ACR_NAME }}.azurecr.io/${{ env.CONTAINER_REPOSITORY }}:${{ env.IMAGE_TAG }}
-          file: Serie2-DevelopingCloudJavaApp/spring-aot/Dockerfile.scratch
+          file: Serie2-DevelopingCloudJavaApp/spring-aot/Dockerfile.alpine
           build-args: APP_FILE=Serie2-DevelopingCloudJavaApp/spring-aot/spring-aot-ni
 
   deploy-aws:
-    name: AWS - Deploy into container services
+    name: AWS - Deploy Lambda
     runs-on: ubuntu-latest
     needs: delivery-aws
     steps:
@@ -161,8 +161,9 @@ jobs:
 
 
 
+
   deploy-azure:
-    name: Azure - Deploy into container services
+    name: Azure - Deploy Containerapp
     runs-on: ubuntu-latest
     needs: delivery-azure
     environment:
