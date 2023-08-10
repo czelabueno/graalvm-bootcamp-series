@@ -1,9 +1,11 @@
-FROM alpine
+FROM ubuntu:latest
+RUN useradd -u 10001 scratchuser
 
+FROM scratch
 WORKDIR /app
-
 ARG APP_FILE
 EXPOSE 8080
-
 COPY ${APP_FILE}  spring-aot
+COPY --from=0 /etc/passwd /etc/passwd
+USER scratchuser
 ENTRYPOINT ["/app/spring-aot"]
