@@ -56,3 +56,8 @@ build/
 
 ### VS Code ###
 .vscode/
+
+
+### musl ###
+x86_64-linux-musl-native/
+zlib-1.2.13

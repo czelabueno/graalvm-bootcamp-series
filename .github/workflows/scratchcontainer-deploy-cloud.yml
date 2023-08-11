@@ -140,7 +140,7 @@ jobs:
     needs: delivery-aws
     environment:
       name: 'Development'
-      url: https://18.117.247.139:8080/community
+      url: http://${{ steps.ecs-task-public.outputs.public_dns }}:8080/community
     steps:
       - name: Login AWS via OIDC
         uses: aws-actions/configure-aws-credentials@v2
@@ -159,6 +159,15 @@ jobs:
           service: graalvm-svc-demo
           cluster: graalvm-ecs-demo
           wait-for-service-stability: true
+
+      - name: Get Amazon ECS Fargate Task Public DNS
+        id: ecs-task-public
+        run: |
+          task_ip=$(aws ecs describe-tasks --cluster graalvm-ecs-demo --tasks $(aws ecs list-tasks --cluster graalvm-ecs-demo --service-name graalvm-svc-demo --query "taskArns[0]" --output text) --query "tasks[0].attachments[0].details[?name=='privateIPv4Address'].value" --output text)
+          echo "Task Private IP: $task_ip"
+
+          public_dns=$(aws ec2 describe-network-interfaces --filters "Name=private-ip-address,Values=$task_ip" --query "NetworkInterfaces[0].Association.PublicDnsName" --output text)
+          echo "public_dns=${public_dns}" >> $GITHUB_OUTPUT
 
   deploy-azure:
     name: Azure - Deploy Containerapp
