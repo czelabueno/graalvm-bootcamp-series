@@ -125,8 +125,7 @@ jobs:
           username: ${{ secrets.ACR_USERNAME }}
           password: ${{ secrets.ACR_PASSWORD }}
 
-      - name: Build, tag, and push docker image to Azure CR
-        if: ${{ matrix.cloud }} == 'Azure'
+      - name: Build, tag, and push docker image to Azure Container Registry
         uses: docker/build-push-action@v4
         with:
           context: .
@@ -136,9 +135,12 @@ jobs:
           build-args: APP_FILE=Serie2-DevelopingCloudJavaApp/spring-aot/spring-aot-ni
 
   deploy-aws:
-    name: AWS - Deploy Lambda
+    name: AWS - Deploy ECS
     runs-on: ubuntu-latest
     needs: delivery-aws
+    environment:
+      name: 'Development'
+      url: https://18.117.247.139:8080/community
     steps:
       - name: Login AWS via OIDC
         uses: aws-actions/configure-aws-credentials@v2
@@ -164,7 +166,7 @@ jobs:
     needs: delivery-azure
     environment:
       name: 'Development'
-      url: ${{ steps.spring-aot-containerapp.outputs.appUrl }}
+      url: ${{ steps.spring-aot-containerapp.outputs.appUrl }}/community
     steps:
       - name: Login via Azure CLI
         uses: azure/login@v1
