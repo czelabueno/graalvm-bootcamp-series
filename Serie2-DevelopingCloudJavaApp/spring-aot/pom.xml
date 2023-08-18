@@ -34,18 +34,24 @@
 			<plugin>
 				<groupId>org.graalvm.buildtools</groupId>
 				<artifactId>native-maven-plugin</artifactId>
+				<extensions>true</extensions>
 				<configuration>
 					<imageName>${artifactId}-ni</imageName>
 					<buildArgs>
-						<!--buildArg>-Ob</buildArg-->
-						<buildArg>--static</buildArg>
-						<buildArg>--libc=musl</buildArg>
+						<buildArg>-Ob</buildArg>
+						<buildArg>--enable-monitoring=heapdump,jfr</buildArg>
+						<buildArg>--enable-sbom</buildArg>
 					</buildArgs>
 				</configuration>
 			</plugin>
 			<plugin>
 				<groupId>org.springframework.boot</groupId>
 				<artifactId>spring-boot-maven-plugin</artifactId>
+				<configuration>
+					<jvmArguments>
+						-agentlib:native-image-agent=config-output-dir=target/native-image/configurations
+					</jvmArguments>
+				</configuration>
 			</plugin>
 		</plugins>
 	</build>
