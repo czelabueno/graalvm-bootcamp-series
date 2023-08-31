@@ -1,3 +1,3 @@
 rm -rf target/
 
-./mvnw package -Pnative
+./mvnw clean package -Dnative -Dquarkus.package.output-name=quarkus-aot-sample-ni

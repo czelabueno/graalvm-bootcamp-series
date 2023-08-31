@@ -1,6 +1,15 @@
 #!/bin/bash
 
-NI_EXECUTABLE_PATH="quarkus-aot-sample/target/quarkus-aot-sample-1.0.0-SNAPSHOT-runner"
+# Check if an argument is provided
+if [ $# -eq 0 ]; then
+    echo "Usage: $0 <profile>"
+    exit 1
+fi
+
+# Access the first argument provided
+profile="$1"
+
+NI_EXECUTABLE_PATH="quarkus-aot-sample/target/quarkus-aot-sample-${profile}-runner"
 
 # Step 0: Check if the executable is already running and kill its process
 if ps aux | grep -q "[${NI_EXECUTABLE_PATH:0:1}]${NI_EXECUTABLE_PATH:1}"; then
@@ -20,7 +29,7 @@ sleep 3
 pid_ni=$(ps aux | grep "[${NI_EXECUTABLE_PATH:0:1}]${NI_EXECUTABLE_PATH:1}" | awk '{print $2; exit}')
 
 # Step 3: Pass the PID to a second command line (replace "your_command" with the actual command you want to run)
-python realtime_histogram.py $pid_ni pgo &
+python realtime_histogram.py $pid_ni $profile &
 
 echo -ne "Load Testing...PID "$pid_ni
 
