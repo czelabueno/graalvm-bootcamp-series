@@ -103,7 +103,7 @@ if __name__ == '__main__':
         ax2.set_title(f'Response Time Distribution - RPS: {rps}')
 
         plt.tight_layout()
-        plt.savefig(f'{prefix}_realtime_graph.png')
+        plt.savefig(f'bench-histograms/{prefix}_realtime_graph.png')
 
     except ValueError:
         print("Invalid PID provided.")
