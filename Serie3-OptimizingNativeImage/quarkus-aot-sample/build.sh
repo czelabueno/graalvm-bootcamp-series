@@ -1,3 +1,3 @@
 rm -rf target/
 
-./mvnw package -Dnative
+./mvnw package -Pnative

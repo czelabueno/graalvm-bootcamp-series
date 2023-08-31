@@ -16,7 +16,7 @@ rm -rf hey*
 wget -q https://hey-release.s3.us-east-2.amazonaws.com/hey_linux_amd64
 mv hey_linux_amd64 hey
 chmod +x hey
-PATH=`pwd`:$PATH
+export PATH=`pwd`:$PATH
 
 cd /workspace/graalvm-bootcamp-series
 hey

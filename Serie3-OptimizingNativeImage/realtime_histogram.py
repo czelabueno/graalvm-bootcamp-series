@@ -45,19 +45,14 @@ def process_load_test(pid):
         return None
 
 
-# Get the process ID from command-line arguments
-if len(sys.argv) != 2:
-    print("Usage: python script_name.py <pid>")
-    sys.exit(1)
-
-
 if __name__ == '__main__':
-    if len(sys.argv) != 2:
-        print("Usage: python script_name.py <pid>")
+    if len(sys.argv) != 3:
+        print("Usage: python realtime_histogram.py <pid> <image_type>")
         sys.exit(1)
 
     try:
         pid = int(sys.argv[1])
+        prefix = str(sys.argv[2])
 
         with concurrent.futures.ThreadPoolExecutor(max_workers=2) as executor:
             future_load_test = executor.submit(process_load_test, pid)
@@ -108,7 +103,7 @@ if __name__ == '__main__':
         ax2.set_title(f'Response Time Distribution - RPS: {rps}')
 
         plt.tight_layout()
-        plt.savefig('realtime_graph.png')
+        plt.savefig(f'{prefix}_realtime_graph.png')
 
     except ValueError:
         print("Invalid PID provided.")
