@@ -31,7 +31,7 @@ pid_ni=$(ps aux | grep "[${NI_EXECUTABLE_PATH:0:1}]${NI_EXECUTABLE_PATH:1}" | aw
 # Step 3: Pass the PID to a second command line (replace "your_command" with the actual command you want to run)
 python realtime_histogram.py $pid_ni $profile &
 
-echo -ne "Load Testing...PID "$pid_ni
+echo -ne "Load Testing...PID "$pid_ni" "
 
 # Progress bar
 for i in `seq 16`;
