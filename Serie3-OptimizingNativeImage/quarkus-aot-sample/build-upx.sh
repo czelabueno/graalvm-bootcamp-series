@@ -1,0 +1,1 @@
+./mvnw package -Dnative -Dquarkus.profile=upx -Dquarkus.package.output-name=quarkus-aot-sample-upx

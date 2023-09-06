@@ -34,7 +34,7 @@ python realtime_histogram.py $pid_ni $profile &
 echo -ne "Load Testing...PID "$pid_ni" "
 
 # Progress bar
-for i in `seq 16`;
+for i in `seq 60`;
     do echo -ne "#";
     sleep 1s;
 done

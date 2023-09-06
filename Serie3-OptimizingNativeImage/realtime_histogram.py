@@ -57,7 +57,7 @@ def plot_resource_consumption(time_counter, memory_mb, cpu_percent, prefix, pid)
     ax1.set_ylabel('Memory MB', color=color)
     ax1.plot(range(1, len(memory_mb) + 1), memory_mb, label='Memory MB', color=color, linestyle='-')
     ax1.tick_params(axis='y', labelcolor=color)
-    ax1.set_ylim(0, 170)
+    ax1.set_ylim(0, 400)
     ax1.set_title(f'Resource Consumption for PID {pid}')
 
     ax1.grid(True)
@@ -68,7 +68,7 @@ def plot_resource_consumption(time_counter, memory_mb, cpu_percent, prefix, pid)
     ax2.set_ylabel('CPU %', color=color)
     ax2.plot(range(1, len(cpu_percent) + 1), cpu_percent, label='CPU %', color=color, linestyle='-')
     ax2.tick_params(axis='y', labelcolor=color)
-    ax2.set_ylim(0, 800)  # CPU percentage is between 0 and 100
+    ax2.set_ylim(0, 1000)  # CPU percentage is between 0 and 100
     ax2.xaxis.set_major_formatter(plt.FuncFormatter(lambda x, _: f'{x/100:.2f}s'))  # Convert to seconds
 
     # Adjust this value to control the space between the plot and the summary table
@@ -113,10 +113,10 @@ def parse_hey_output(output):
 
 def process_load_test(pid, prefix):
     try:    
-        hey_output = subprocess.check_output(['hey', '-z', '15s', '-c', '4', 'http://localhost:8080/community'])
+        hey_output = subprocess.check_output(['hey', '-n', '1000000', '-c', '10', 'http://localhost:8080/community'])
         save_path = f'bench-histograms/{prefix}'
         os.makedirs(save_path, exist_ok=True)
-        output_file = f'{save_path}/hey_load_test_output.md'
+        output_file = f'{save_path}/{prefix}_hey_load_test_output.md'
         # Save the output to the specified file
         with open(output_file, "w") as file:
             file.write(hey_output.decode('utf-8'))
