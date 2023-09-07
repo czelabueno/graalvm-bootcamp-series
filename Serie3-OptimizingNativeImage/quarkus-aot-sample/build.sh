@@ -1,3 +1,1 @@
-rm -rf target/
-
-./mvnw package -Dnative
+./mvnw package -Dquarkus.package.type=uber-jar
