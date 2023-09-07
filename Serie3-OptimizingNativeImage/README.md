@@ -1,7 +1,7 @@
 # GraalVM Bootcamp Series
 
 ## Serie 3. Optimizing native image for peak performance environments:
-- 📽️ [Watch the Video](_link_)
+- 📽️ [Watch the Video](https://www.youtube.com/watch?v=2_XJcnkMg5k)
 
 
 With this serie you will learn multiple options to optimize native images to several purposes. By general you can optimize for:
